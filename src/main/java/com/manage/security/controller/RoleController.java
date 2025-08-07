@@ -1,12 +1,15 @@
 package com.manage.security.controller;
 
-import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,11 +27,34 @@ public class RoleController {
 
     @PostMapping(value = "/create")
     @PreAuthorize("permitAll()")
-    public ResponseEntity<?> create(@RequestBody HashMap<String, Object> json, BindingResult bindingResult) {
+    public ResponseEntity<?> create(@RequestBody Map<String, Object> body, BindingResult bindingResult) {
         if(bindingResult.hasErrors()) {
             return GeneralHelper.badRequest("There are errors in the fields", null);
         }
-        return roleService.create(json);
+        return roleService.create(body);
     }
 
+    @GetMapping(value = "/get/all")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<?> findAll() {
+        return roleService.findAll();
+    }
+
+    @PutMapping(value = "/update")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<?> update(@RequestBody Map<String, Object> body, BindingResult bindingResult) {
+        if(bindingResult.hasErrors()) {
+            return GeneralHelper.badRequest("There are errors in the fields", null);
+        }
+        return roleService.update(body);
+    }
+
+    @DeleteMapping(value = "/delete")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<?> delete(@RequestBody Map<String, Object> body, BindingResult bindingResult) {
+        if(bindingResult.hasErrors()) {
+            return GeneralHelper.badRequest("There are errors in the fields", null);
+        }
+        return roleService.delete(body);
+    }
 }
