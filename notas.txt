@@ -1,57 +1,51 @@
-package com.manage.security.config;
 
-import java.util.Arrays;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+-----------------------------------------------------------------------------------------------------------------------
 
-@Configuration
-@EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true)
-public class SecurityConfig {
+QUIERO ANIMARTE A QUE DESCUBRAS QUE PASA SI NO TE RINDES
 
-    // Implementación de objeto para encriptación de datos sencibles que no necesiten invertir proceso
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+-----------------------------------------------------------------------------------------------------------------------
 
-    // Implementación de la cadena de filtros para mayor seguridad al procesar una la solicitud
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
-        return httpSecurity
-                    .cors(cors -> cors.configurationSource(this.corsConfiguration()))
-                    .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                    .csrf(csrf -> csrf.disable())
-                    .build();
-    }
 
-    // Implementamos el objeto para la configuración de las características de nuestro CORS
-    @Bean
-    public CorsConfigurationSource corsConfiguration() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(Arrays.asList("*"));
-        config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "User-Agent"));
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
-        config.setAllowCredentials(true);
+-----------------------------------------------------------------------------------------------------------------------
 
-        UrlBasedCorsConfigurationSource corsConfiguration = new UrlBasedCorsConfigurationSource();
-        corsConfiguration.registerCorsConfiguration("/**", config);
+AVANCES:
 
-        return corsConfiguration;
-    }
+1. Tengo para avanzar, crear el flujo para endpoint de registro y creación de usuarios con distintos roles y almacenamiento de tokens, con secrets por usuario si es posible, además de manejo de UserDetails, programación con flujo de stream y manejo de roles. Luego, flujo de validación de token y refresco del mismo. Luego, desarrollar endpoints distintos, para probar el acceso de recursos por roles de los usuarios. luego de ello, estamos listos para avanzar en proyecto de logística...
 
-    // .addFilterBefore(new JwtAuthFilter(), UsernamePasswordAuthenticationFilter.class) En caso de agregar filtro de autenticación de usuario predeterminado
+2. luego de que termines de desarrollar, puedes consultar como tips de como buscar la documentación de manera correcta, ya que, con toda la explicación que me entrega me queda mucho más claro en el desarrollo de API con SpringBoot con Spring security, pero muchas veces uno busca en la documentación original y implementa soluciones que no te van a servir, o te pierdes dentro de tanta información y no finalizas de implementar ningún enfoque...
+
+3. En el proyecto de logística, luego de implementar ciertas cosas, se puede seguir con validación de datos, documentación, notificaciones (email, whatsapp, telegram), pruebas unitarias....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-----------------------------------------------------------------------------------------------------------------------
+
+----- ENTENDIMIENTO DE SPRING SECURITY
+
+// .addFilterBefore(new JwtAuthFilter(), UsernamePasswordAuthenticationFilter.class) En caso de agregar filtro de autenticación de usuario predeterminado
     // UsernamePasswordAuthenticationFilter:
     // Solo actúa en /login (POST) si usas formLogin(). En tu API JWT, no lo necesitas.
     // http.formLogin(form -> form
@@ -114,5 +108,42 @@ public class SecurityConfig {
     // AOP:
     // Ventaja: Evita código repetitivo (ej.: logs/seguridad en cada método).
     // Spring lo usa internamente para @Transactional, @Cacheable, etc.
-    
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-----------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
