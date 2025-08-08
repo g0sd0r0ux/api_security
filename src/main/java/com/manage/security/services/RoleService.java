@@ -4,11 +4,13 @@ import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 
+import com.manage.security.dtos.request.RoleRequest;
+
 public interface RoleService {
 
-    ResponseEntity<?> create(Map<String, Object> body);
+    ResponseEntity<?> create(RoleRequest roleRequest);
     ResponseEntity<?> findAll();
-    ResponseEntity<?> update(Map<String, Object> body);
+    ResponseEntity<?> update(RoleRequest roleRequest);
     ResponseEntity<?> delete(Map<String, Object> body);
 
 }

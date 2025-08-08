@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.manage.security.dtos.request.RoleRequest;
 import com.manage.security.helpers.GeneralHelper;
 import com.manage.security.services.RoleService;
 
@@ -27,11 +28,11 @@ public class RoleController {
 
     @PostMapping(value = "/create")
     @PreAuthorize("permitAll()")
-    public ResponseEntity<?> create(@RequestBody Map<String, Object> body, BindingResult bindingResult) {
+    public ResponseEntity<?> create(@RequestBody RoleRequest roleRequest, BindingResult bindingResult) {
         if(bindingResult.hasErrors()) {
             return GeneralHelper.badRequest("There are errors in the fields", null);
         }
-        return roleService.create(body);
+        return roleService.create(roleRequest);
     }
 
     @GetMapping(value = "/get/all")
@@ -42,13 +43,15 @@ public class RoleController {
 
     @PutMapping(value = "/update")
     @PreAuthorize("permitAll()")
-    public ResponseEntity<?> update(@RequestBody Map<String, Object> body, BindingResult bindingResult) {
+    public ResponseEntity<?> update(@RequestBody RoleRequest roleRequest, BindingResult bindingResult) {
         if(bindingResult.hasErrors()) {
             return GeneralHelper.badRequest("There are errors in the fields", null);
         }
-        return roleService.update(body);
+        return roleService.update(roleRequest);
     }
 
+    // Recibir los datos con Map<>, puede servir para realizar flujos, donde se deban consumir servicios que son
+    // dinámicos y cambie la estructura de los datos
     @DeleteMapping(value = "/delete")
     @PreAuthorize("permitAll()")
     public ResponseEntity<?> delete(@RequestBody Map<String, Object> body, BindingResult bindingResult) {

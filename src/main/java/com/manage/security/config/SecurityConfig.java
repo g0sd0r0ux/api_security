@@ -101,7 +101,7 @@ public class SecurityConfig {
     //         .addFilterBefore(new JwtAuthFilter(), UsernamePasswordAuthenticationFilter.class) // 4. Filtro JWT
     //         .authorizeHttpRequests(auth -> auth // 5. Autorizaciones
     //             .requestMatchers("/auth/**").permitAll()
-    //             .anyRequest().authenticated()
+    //             .anyRequest().authenticated() // Hace referencia al autenticador del contexto de Spring, es independiente de los roles que tenga el usuario
     //         )
     //         .build();
     // }

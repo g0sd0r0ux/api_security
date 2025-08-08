@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
 
-import com.manage.security.dtos.GeneralDto;
+import com.manage.security.dtos.responses.GeneralResponse;
 
 public class GeneralHelper {
 
@@ -22,16 +22,20 @@ public class GeneralHelper {
         return json;
     }
 
-    public static ResponseEntity<GeneralDto> okRequest(String message, Object data) {
+    public static ResponseEntity<GeneralResponse> okRequest(String message, Object data) {
         int code = HttpStatus.OK.value();
         String buildMessage = "The request was processed: " + message;
-        return ResponseEntity.status(code).body(new GeneralDto(buildMessage, code, data));
+        return ResponseEntity.status(code).body(new GeneralResponse(buildMessage, code, data));
     }
 
-    public static ResponseEntity<GeneralDto> badRequest(String message, Object data) {
+    public static ResponseEntity<GeneralResponse> badRequest(String message, Object data) {
         int code = HttpStatus.BAD_REQUEST.value();
         String buildMessage = "The request was neglected: " + message;
-        return ResponseEntity.status(code).body(new GeneralDto(buildMessage, code, data));
+        return ResponseEntity.status(code).body(new GeneralResponse(buildMessage, code, data));
+    }
+
+    public static boolean isNullOrBlank(String field) {
+        return field == null || field.isBlank();
     }
 
 }
