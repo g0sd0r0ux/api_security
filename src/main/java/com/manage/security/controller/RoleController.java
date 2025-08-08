@@ -19,7 +19,7 @@ import com.manage.security.helpers.GeneralHelper;
 import com.manage.security.services.RoleService;
 
 @RestController
-@RequestMapping(value = "/v1/roles/")
+@RequestMapping(value = "/v1/roles")
 @PreAuthorize(value = "denyAll()")
 public class RoleController {
 
@@ -27,7 +27,7 @@ public class RoleController {
     private RoleService roleService;
 
     @PostMapping(value = "/create")
-    @PreAuthorize("permitAll()")
+    @PreAuthorize(value = "permitAll()")
     public ResponseEntity<?> create(@RequestBody RoleRequest roleRequest, BindingResult bindingResult) {
         if(bindingResult.hasErrors()) {
             return GeneralHelper.badRequest("There are errors in the fields", null);

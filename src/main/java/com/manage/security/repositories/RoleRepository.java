@@ -12,5 +12,6 @@ public interface RoleRepository extends JpaRepository<RoleModel, Long> {
 
     // Se pueden crear clases personalizadas
     Optional<RoleModel> findByName(String name);
+    boolean existsByName(String name);
 
 }

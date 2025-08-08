@@ -30,7 +30,7 @@ public class ActionModel {
     private Long id;
     private String type;
     private String description;
-    private LocalDateTime changeDate;
+    private LocalDateTime startedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")

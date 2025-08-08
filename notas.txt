@@ -13,6 +13,10 @@ AVANCES:
 
 1. Tengo para avanzar, crear el flujo para endpoint de registro y creación de usuarios con distintos roles y almacenamiento de tokens, con secrets por usuario si es posible, además de manejo de UserDetails, programación con flujo de stream y manejo de roles. Luego, flujo de validación de token y refresco del mismo. Luego, desarrollar endpoints distintos, para probar el acceso de recursos por roles de los usuarios. luego de ello, estamos listos para avanzar en proyecto de logística...
 
+1.1 Tienes el contexto de usuarios, roles, productos, y acciones. Usuarios admin, pueden ver, crear, eliminar productos (acciones). Usuarios mantenedores, pueden ver y modificar productos (acciones). Usuarios clientes, pueden buscar productos, filtrar productos por características y simular compra (acciones).
+
+(ROLES EN ESTE CONTEXTO ^ ROLE_ADMIN, ROLE_MAINTAINER, ROLE_CUSTOMER)
+
 2. luego de que termines de desarrollar, puedes consultar como tips de como buscar la documentación de manera correcta, ya que, con toda la explicación que me entrega me queda mucho más claro en el desarrollo de API con SpringBoot con Spring security, pero muchas veces uno busca en la documentación original y implementa soluciones que no te van a servir, o te pierdes dentro de tanta información y no finalizas de implementar ningún enfoque...
 
 3. En el proyecto de logística, luego de implementar ciertas cosas, se puede seguir con validación de datos, documentación, notificaciones (email, whatsapp, telegram), pruebas unitarias....

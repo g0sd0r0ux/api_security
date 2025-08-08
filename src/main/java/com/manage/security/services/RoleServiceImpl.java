@@ -32,8 +32,7 @@ public class RoleServiceImpl implements RoleService {
             return GeneralHelper.badRequest("The data can not be used", null);
         }
 
-        Optional<RoleModel> roleOptional = roleRepository.findByName(name);
-        if(roleOptional.isPresent()) {
+        if(roleRepository.existsByName(name)) {
             return GeneralHelper.badRequest("The role is already created", null);
         }
 
@@ -99,8 +98,15 @@ public class RoleServiceImpl implements RoleService {
             return GeneralHelper.badRequest("The data can not be used", null);
         }
 
-        // Se elimina el role
-        roleRepository.deleteById( ((Integer) idObj).longValue() );
+        // Se verifica que el role exista para eliminarlo
+        Long id = ((Integer) idObj).longValue();
+        Optional<RoleModel> roleOptional = roleRepository.findById(id);
+        if(roleOptional.isEmpty()) {
+            return GeneralHelper.badRequest("The role doesn't exist", null);
+        }
+
+        // Existe y se elimina
+        roleRepository.delete(roleOptional.get());
         return GeneralHelper.okRequest("The role has been eliminated", null);
     }
 
