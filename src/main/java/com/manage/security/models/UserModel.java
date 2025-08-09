@@ -1,5 +1,6 @@
 package com.manage.security.models;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -45,8 +46,10 @@ public class UserModel {
     private String password;
 
     @JsonProperty(access = Access.WRITE_ONLY)
-    @Column(length = 350)
-    private String jwtAuth;
+    private String jwtJti;
+
+    @JsonProperty(access = Access.WRITE_ONLY)
+    private Date jwtExp;
 
     @JsonProperty(access = Access.WRITE_ONLY)
     private byte[] secretKeyBytes;

@@ -2,16 +2,15 @@ package com.manage.security.config;
 
 import java.security.Key;
 import java.security.SecureRandom;
-import java.util.Collection;
 import java.util.Date;
 
 import javax.crypto.SecretKey;
 
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.core.GrantedAuthority;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.manage.security.models.UserModel;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.LocatorAdapter;
@@ -39,19 +38,19 @@ public class JwtConfig extends LocatorAdapter<Key> {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String createJwt(Long id, String username, Collection<? extends GrantedAuthority> authorities,
-        SecretKey secretKey) throws JsonProcessingException
+    public String createJwt(UserModel userDB) throws JsonProcessingException
     {
-        String authoritiesStr = new ObjectMapper().writeValueAsString(authorities);
+        String authoritiesStr = new ObjectMapper().writeValueAsString(userDB.getRoles());
         return Jwts.builder()
             .header()
-            .keyId(id.toString())
+            .keyId(userDB.getId().toString())
             .and()
-            .subject(username)
+            .id(userDB.getJwtJti())
+            .subject(userDB.getUsername())
             .claim("authorities", authoritiesStr)
             .issuedAt(new Date())
-            .expiration(new Date(System.currentTimeMillis() + (1000 * 60 * 5))) // Expira en 5 minutos
-            .signWith(secretKey)
+            .expiration(userDB.getJwtExp())
+            .signWith(Keys.hmacShaKeyFor(userDB.getSecretKeyBytes()))
             .compact();
     }
     

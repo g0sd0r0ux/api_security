@@ -18,7 +18,6 @@ public class UserResponse {
 
     private Long id;
     private String username;
-    private String jwtAuh;
     private Set<RoleResponse> roles = new HashSet<>();
     // private Set<ActionModel> actions; // Debería crear un action response
 

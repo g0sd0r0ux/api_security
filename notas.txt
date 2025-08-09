@@ -140,6 +140,115 @@ AVANCES:
 
 
 
+Gestión de Tokens con jti (Breve y Directo)
+1. Flujo Estándar con jti
+Al registrar/logear:
+
+Generas el token con jti (UUID único) y exp (fecha de expiración).
+
+Guardas en BD: Solo el jti + exp + userId (no el token completo).
+
+Envías el token al cliente (en el response del login/registro).
+
+En cada solicitud autenticada:
+
+El cliente envía el token en el header Authorization.
+
+En tu filtro JWT:
+
+Verificas la firma y si el token está expirado (exp).
+
+Si está expirado:
+
+Buscas en BD el jti del token expirado.
+
+Generas nuevo token (nuevo jti y exp).
+
+Actualizas el jti y exp en BD.
+
+Envías el nuevo token en el header Authorization de la respuesta (HTTP 200 o 201).
+
+El cliente:
+
+Recibe el nuevo token y lo reemplaza automáticamente (sin necesidad de relogin).
+
+2. ¿Cuándo se Monitorea?
+Siempre en el filtro JWT (antes de llegar al controlador).
+
+Si el token es válido: La solicitud pasa.
+
+Si está expirado:
+
+Se rechaza la solicitud original (HTTP 401).
+
+Pero antes, se envía el nuevo token en la respuesta (para que el cliente lo actualice).
+
+3. Ventajas vs Tu Enfoque Actual
+Tu Enfoque	Enfoque con jti
+Almacenas el token completo.	Solo guardas jti + exp (menos espacio).
+Mayor riesgo si la BD es vulnerada.	Menor riesgo (sin tokens completos en BD).
+Complejidad al rotar claves.	Fácil invalidación (borras el jti en BD para forzar logout).
+Ejemplo de Respuesta con Nuevo Token
+java
+// En tu filtro JWT (cuando detecta token expirado):
+response.setHeader("New-Access-Token", nuevoToken);  
+response.setStatus(HttpServletResponse.SC_OK); // 200
+Cliente: Debe estar programado para:
+
+Verificar si la respuesta contiene New-Access-Token.
+
+Reemplazar el token viejo por el nuevo.
+
+Conclusión
+Usa jti para:
+
+Seguridad (invalida tokens fácilmente).
+
+Menor almacenamiento en BD.
+
+Actualiza el token en el filtro JWT y envíalo al cliente en la respuesta.
+
+¿Necesitas ver cómo implementar el filtro? 😊
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-----------------------------------------------------------------------------------------------------------------------
 
 
 

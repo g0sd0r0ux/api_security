@@ -1,16 +1,16 @@
 package com.manage.security.services;
 
-import java.util.Collection;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -78,27 +78,25 @@ public class UserServiceImpl implements UserService {
 
         // El username no existe y se encontraron roles para asignarle al usuario, por lo tanto, se crea
         UserModel userDB = new UserModel();
+        SecretKey userSecretKey = jwtConfig.createSecretKey();
+        String userJwtJti = UUID.randomUUID().toString();
+        Date userJwtExp = new Date(System.currentTimeMillis() + (1000*60*60*4)); // Expira en 4 horas
         userDB.setUsername(username);
         userDB.setPassword(passwordEncoder.encode(password));
+        userDB.setJwtJti(userJwtJti);
+        userDB.setJwtExp(userJwtExp);
+        userDB.setSecretKeyBytes(userSecretKey.getEncoded());
         userDB.setRoles(rolesForUser);
         userDB = userRepository.save(userDB);
 
         try {
-            // Como ya se creó el usuario, ahora posee id, y se le puede crear un token de seguridad
-            Collection<GrantedAuthority> authorities = rolesForUser.stream()
-                .map(roleForUser -> new SimpleGrantedAuthority(roleForUser.getName()))
-                .collect(Collectors.toSet());
-            SecretKey userSecretKey = jwtConfig.createSecretKey();
-            String userJwtAuth = jwtConfig.createJwt(userDB.getId(), username, authorities, userSecretKey);
-            // En caso de obtener el token sin mayor problema, se actualiza el usuario guardando su token y su key
-            userDB.setJwtAuth(userJwtAuth);
-            userDB.setSecretKeyBytes(userSecretKey.getEncoded());
-            userDB = userRepository.save(userDB);
+            // En caso de obtener el token sin mayor problema, se entrega el usuario con su token
+            String userJwtAuth = jwtConfig.createJwt(userDB);
             Set<RoleResponse> rolesResponse = rolesForUser.stream()
                 .map(roleForUser -> new RoleResponse(roleForUser.getId(), roleForUser.getName()))
                 .collect(Collectors.toSet());
-            UserResponse userResponse = new UserResponse(userDB.getId(), userDB.getUsername(), userDB.getJwtAuth(), rolesResponse);
-            return GeneralHelper.okRequest("The uset has been created successfully", userResponse);
+            UserResponse userResponse = new UserResponse(userDB.getId(), userDB.getUsername(), rolesResponse);
+            return GeneralHelper.okRequest("The uset has been created successfully", Map.of("user", userResponse, "jwtAuth", userJwtAuth));
         } catch(JsonProcessingException e) {
             // No se pudo crear el token por la excepción de ingresar el claim de authorities, por lo tanto,
             // se elimina el usuario y se rechaza solicitud
