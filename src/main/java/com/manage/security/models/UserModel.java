@@ -31,7 +31,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode(of = {"id", "username"})
-@JsonPropertyOrder(value = {"id", "username", "username"})
+@JsonPropertyOrder(value = {"id", "username", "roles", "actions"})
 public class UserModel {
 
     @Id
@@ -43,6 +43,13 @@ public class UserModel {
 
     @JsonProperty(access = Access.WRITE_ONLY)
     private String password;
+
+    @JsonProperty(access = Access.WRITE_ONLY)
+    @Column(length = 350)
+    private String jwtAuth;
+
+    @JsonProperty(access = Access.WRITE_ONLY)
+    private byte[] secretKeyBytes;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(

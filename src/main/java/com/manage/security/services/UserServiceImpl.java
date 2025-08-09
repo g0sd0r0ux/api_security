@@ -1,16 +1,22 @@
 package com.manage.security.services;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
+
+import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.manage.security.config.JwtConfig;
 import com.manage.security.dtos.request.UserRequest;
 import com.manage.security.dtos.responses.RoleResponse;
 import com.manage.security.dtos.responses.UserResponse;
@@ -31,6 +37,9 @@ public class UserServiceImpl implements UserService {
     private RoleRepository roleRepository;
 
     @Autowired
+    private JwtConfig jwtConfig;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Override
@@ -42,7 +51,8 @@ public class UserServiceImpl implements UserService {
         Set<String> roles = userRequest.roles();
 
         if(GeneralHelper.isNullOrBlank(username) || GeneralHelper.isNullOrBlank(password) ||
-            GeneralHelper.isNullOrBlank(repeatPassword) || !password.equals(repeatPassword) || roles.isEmpty())
+            GeneralHelper.isNullOrBlank(repeatPassword) || !password.equals(repeatPassword) ||
+            !this.verifyRoles(roles))
         {
             return GeneralHelper.badRequest("The data can not be used", null);
         }
@@ -53,13 +63,6 @@ public class UserServiceImpl implements UserService {
         if(userRepository.existsByUsername(username)) {
             return GeneralHelper.badRequest("The username already exists", null);
         }
-
-        // Consumer<T>:
-        // Es una interfaz funcional que acepta un argumento (T) y no devuelve nada (void). Se usa en operaciones que procesan elementos sin retornar resultados.
-        Consumer<String> imprimir = (texto) -> {
-            System.out.println(texto);
-        };
-        imprimir.accept("Que tal");
 
         // OPTIMIZADO - buscar roles
         List<RoleModel> rolesDB = roleRepository.findAll();
@@ -79,12 +82,52 @@ public class UserServiceImpl implements UserService {
         userDB.setPassword(passwordEncoder.encode(password));
         userDB.setRoles(rolesForUser);
         userDB = userRepository.save(userDB);
-        Set<RoleResponse> rolesResponse = rolesForUser.stream()
-            .map(roleForUser -> new RoleResponse(roleForUser.getId(), roleForUser.getName()))
-            .collect(Collectors.toSet());
-        UserResponse userResponse = new UserResponse(userDB.getId(), userDB.getUsername(), rolesResponse);
 
-        return GeneralHelper.okRequest("The uset has been created successfully", userResponse);
+        try {
+            // Como ya se creó el usuario, ahora posee id, y se le puede crear un token de seguridad
+            Collection<GrantedAuthority> authorities = rolesForUser.stream()
+                .map(roleForUser -> new SimpleGrantedAuthority(roleForUser.getName()))
+                .collect(Collectors.toSet());
+            SecretKey userSecretKey = jwtConfig.createSecretKey();
+            String userJwtAuth = jwtConfig.createJwt(userDB.getId(), username, authorities, userSecretKey);
+            // En caso de obtener el token sin mayor problema, se actualiza el usuario guardando su token y su key
+            userDB.setJwtAuth(userJwtAuth);
+            userDB.setSecretKeyBytes(userSecretKey.getEncoded());
+            userDB = userRepository.save(userDB);
+            Set<RoleResponse> rolesResponse = rolesForUser.stream()
+                .map(roleForUser -> new RoleResponse(roleForUser.getId(), roleForUser.getName()))
+                .collect(Collectors.toSet());
+            UserResponse userResponse = new UserResponse(userDB.getId(), userDB.getUsername(), userDB.getJwtAuth(), rolesResponse);
+            return GeneralHelper.okRequest("The uset has been created successfully", userResponse);
+        } catch(JsonProcessingException e) {
+            // No se pudo crear el token por la excepción de ingresar el claim de authorities, por lo tanto,
+            // se elimina el usuario y se rechaza solicitud
+            userRepository.delete(userDB);
+            return GeneralHelper.badRequest("It's not possible register the user", null);
+        }
+
+    }
+
+    private boolean verifyRoles(Set<String> roles) {
+        if(roles.isEmpty()) {
+            return false;
+        }
+        boolean adminRole=false, maintainerRole=false, customerRole=false;
+        for(String role : roles) {
+            if(role.equals("ROLE_ADMIN")) {
+                adminRole=true;
+            } else if(role.equals("ROLE_MAINTAINER")) {
+                maintainerRole=true;
+            } else if(role.equals("ROLE_CUSTOMER")) {
+                customerRole=true;
+            }
+        }
+        if((adminRole || maintainerRole) && !customerRole) {
+            return true;
+        } else if(customerRole && !adminRole && !maintainerRole) {
+            return true;
+        }
+        return false;
     }
 
     // CONCLUSIONES
@@ -123,4 +166,10 @@ public class UserServiceImpl implements UserService {
         // ⚠️ ¿Es necesaria la conversión en tu caso?
         // No, porque solo estás iterando sobre la List (rolesDB). La conversión sería útil si necesitaras eliminar duplicados o realizar operaciones de conjunto (uniones, intersecciones).
 
+        // // Consumer<T>:
+        // // Es una interfaz funcional que acepta un argumento (T) y no devuelve nada (void). Se usa en operaciones que procesan elementos sin retornar resultados.
+        // Consumer<String> imprimir = (texto) -> {
+        //     System.out.println(texto);
+        // };
+        // imprimir.accept("Que tal");
 }
