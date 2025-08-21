@@ -30,4 +30,10 @@ public class UserController {
         return userService.register(userRequest);
     }
 
+    @PostMapping(value = "/login")
+    @PreAuthorize(value = "permitAll()")
+    public ResponseEntity<?> login(@RequestBody UserRequest userRequest) {
+        return userService.login(userRequest);
+    }
+
 }

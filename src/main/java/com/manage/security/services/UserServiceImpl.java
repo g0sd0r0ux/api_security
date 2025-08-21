@@ -1,10 +1,9 @@
 package com.manage.security.services;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.crypto.SecretKey;
@@ -15,7 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+// import com.fasterxml.jackson.core.JsonProcessingException;
 import com.manage.security.config.JwtConfig;
 import com.manage.security.dtos.request.UserRequest;
 import com.manage.security.dtos.responses.RoleResponse;
@@ -35,9 +34,6 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private RoleRepository roleRepository;
-
-    @Autowired
-    private JwtConfig jwtConfig;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -78,26 +74,23 @@ public class UserServiceImpl implements UserService {
 
         // El username no existe y se encontraron roles para asignarle al usuario, por lo tanto, se crea
         UserModel userDB = new UserModel();
-        SecretKey userSecretKey = jwtConfig.createSecretKey();
-        String userJwtJti = UUID.randomUUID().toString();
-        Date userJwtExp = new Date(System.currentTimeMillis() + (1000*60*60*4)); // Expira en 4 horas
+        SecretKey userSecretKey = JwtConfig.createSecretKey();
+        JwtConfig.updateJtiAndExp(userDB);
         userDB.setUsername(username);
         userDB.setPassword(passwordEncoder.encode(password));
-        userDB.setJwtJti(userJwtJti);
-        userDB.setJwtExp(userJwtExp);
         userDB.setSecretKeyBytes(userSecretKey.getEncoded());
         userDB.setRoles(rolesForUser);
         userDB = userRepository.save(userDB);
 
         try {
             // En caso de obtener el token sin mayor problema, se entrega el usuario con su token
-            String userJwtAuth = jwtConfig.createJwt(userDB);
+            String userJwtAuth = JwtConfig.createJwt(userDB);
             Set<RoleResponse> rolesResponse = rolesForUser.stream()
                 .map(roleForUser -> new RoleResponse(roleForUser.getId(), roleForUser.getName()))
                 .collect(Collectors.toSet());
             UserResponse userResponse = new UserResponse(userDB.getId(), userDB.getUsername(), rolesResponse);
-            return GeneralHelper.okRequest("The uset has been created successfully", Map.of("user", userResponse, "jwtAuth", userJwtAuth));
-        } catch(JsonProcessingException e) {
+            return GeneralHelper.okRequest("The user has been created successfully", Map.of("user", userResponse, "jwtAuth", userJwtAuth));
+        } catch(Exception e) {
             // No se pudo crear el token por la excepción de ingresar el claim de authorities, por lo tanto,
             // se elimina el usuario y se rechaza solicitud
             userRepository.delete(userDB);
@@ -126,6 +119,48 @@ public class UserServiceImpl implements UserService {
             return true;
         }
         return false;
+    }
+
+    // IMPORTANTE: SEGUIR CON DESARROLLO, CONSULTAR CUAL ES EL MEJOR TIPO DE DATO PARA ALMACENAR EXP EN EL USUARIO
+    // SI ES DATE, LOCALDATE, LOCALDATETIME. IMPLEMENTAR CONTROLADOR PARA CAPTURA DE EXCEPCIONES EN EJECUCIÓN DE
+    // FORMA PERSONALIZADA Y DESARROLLAR EL FILTRO DE AUTENTICACIÓN DEL TOKEN, PARA GESTIONAR LOS RECURSOS
+    // DEPENDIENDO DE LOS ROLES DEL USUARIO. (EXTRA: REVISAR VALIDACIÓN DE DATOS, DOCUMENTACIÓN SWAGGER, NOTIFICACIONES
+    // CON EMAIL O TELEGRAM, PRUEBAS UNITARIAS / INTEGRACIÓN, SERVICIOS CLOUD)
+
+    @Override
+    public ResponseEntity<?> login(UserRequest userRequest) {
+        String username = userRequest.username();
+        String password = userRequest.password();
+
+        if(GeneralHelper.isNullOrBlank(username) || GeneralHelper.isNullOrBlank(password)) {
+            return GeneralHelper.badRequest("The data can not be used", null);
+        }
+
+        Optional<UserModel> userOptional = userRepository.findByUsername(username);
+        if(userOptional.isEmpty()) {
+            return GeneralHelper.badRequest("The credentials are incorrect", null);
+        }
+
+        UserModel userDB = userOptional.get();
+        if(passwordEncoder.matches(password, userDB.getPassword())) {
+            // Existe usuario y coincide la contraseña, se actualiza token y se devuelve el nuevo
+            try {
+                JwtConfig.updateJtiAndExp(userDB);
+                String jwtAuth = JwtConfig.createJwt(userDB);
+                userDB = userRepository.save(userDB);
+                // Construir respuesta correcta
+                Set<RoleResponse> rolesResponse = userDB.getRoles().stream()
+                    .map(roleDB -> new RoleResponse(roleDB.getId(), roleDB.getName()))
+                    .collect(Collectors.toSet());
+                UserResponse userResponse = new UserResponse(userDB.getId(), username, rolesResponse);
+                return GeneralHelper.okRequest(username + " have logged successfully", Map.of("user", userResponse, "jwtAuth", jwtAuth));
+            } catch (Exception e) {
+                return GeneralHelper.badRequest("The credentials are incorrect", null);
+            }
+            
+        }
+
+        return GeneralHelper.badRequest("The credentials are incorrect", null);
     }
 
     // CONCLUSIONES
