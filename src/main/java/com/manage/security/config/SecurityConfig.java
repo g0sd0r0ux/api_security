@@ -2,6 +2,7 @@ package com.manage.security.config;
 
 import java.util.Arrays;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -11,14 +12,23 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import com.manage.security.config.filter.JwtAuthFilter;
+import com.manage.security.repositories.UserRepository;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
+
+    // Para entregar instancia al filtro, el administrador del contexto de autenticación de spring, lo manejamos
+    // directamente
+    @Autowired
+    private UserRepository userRepository;
 
     // Implementación de objeto para encriptación de datos sencibles que no necesiten invertir proceso
     @Bean
@@ -33,6 +43,7 @@ public class SecurityConfig {
                     .cors(cors -> cors.configurationSource(this.corsConfiguration()))
                     .csrf(csrf -> csrf.disable())
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                    .addFilterBefore(new JwtAuthFilter(userRepository), UsernamePasswordAuthenticationFilter.class)
                     .build();
     }
 

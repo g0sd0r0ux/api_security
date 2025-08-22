@@ -155,7 +155,7 @@ public class UserServiceImpl implements UserService {
                 UserResponse userResponse = new UserResponse(userDB.getId(), username, rolesResponse);
                 return GeneralHelper.okRequest(username + " have logged successfully", Map.of("user", userResponse, "jwtAuth", jwtAuth));
             } catch (Exception e) {
-                return GeneralHelper.badRequest("The credentials are incorrect", null);
+                return GeneralHelper.badRequest("It's not possible to log-in the user", null);
             }
             
         }

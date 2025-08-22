@@ -1,6 +1,6 @@
 package com.manage.security.models;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -49,7 +49,7 @@ public class UserModel {
     private String jwtJti;
 
     @JsonProperty(access = Access.WRITE_ONLY)
-    private Date jwtExp;
+    private LocalDateTime jwtExp;
 
     @JsonProperty(access = Access.WRITE_ONLY)
     private byte[] secretKeyBytes;
